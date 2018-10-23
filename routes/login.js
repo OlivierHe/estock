@@ -24,18 +24,18 @@ async function tokenGen(res, user, role){
 async function mongoConnect(req, res){
     try{
         const {user, password} = req.body;
-        console.log("connexion bdd")
+        // "connexion bdd"
         const client = await MongoClient.connect(config.mongodbHost,{ useNewUrlParser: true }).catch(e => {throw {status :"408", message: "Connexion à la bdd impossible"}});
         const db = await client.db('crud_reactjs_node');
 
-        console.log("verif user");
+        // "verif user"
         const results = await db.collection('users').findOne({'user': user});
         if (results === null ) throw {status : "408", message: "Utilisateur inconnu"};
 
-        console.log("bcrypt compare");
+        //"bcrypt compare"
         const resp = await bcrypt.compare(password,results.hash);
         if(!resp) throw {status: "403", message: "Hash éronné"} ;
-        console.log("token gen");
+        //"token gen"
         tokenGen(res, user, results.role); 
     }catch(e){
         return error(res,e);
@@ -51,10 +51,10 @@ router.post('/',[
     ], (req, res, next) => {
         try {
             // verif type de requête
-            if (req.is("application/json")!=="application/json") throw "400";
+            if (req.is("application/json")!=="application/json") throw {status :"400", message: "Mauvais type"};
             // verif params
             const errors = validationResult(req);
-            if (!errors.isEmpty()) throw "400";
+            if (!errors.isEmpty()) throw {status :"400", message: "Mauvais paramètres"};
             // connexion à mongodb async
             mongoConnect(req, res);
         }catch(e){
